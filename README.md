@@ -10,6 +10,11 @@ pinned: false
 license: apache-2.0
 ---
 
+# Notice
+This is a copy for [aadnk/whisper-webui](https://gitlab.com/aadnk/whisper-webui),I made modifications based on this for personal use.
+
+---
+
 Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
 
 # Running Locally
@@ -182,6 +187,7 @@ cli.py --model large --auto_parallel True --vad silero-vad \
 Note that the models themselves are currently not included in the Docker images, and will be downloaded on the demand.
 To avoid this, bind the directory /root/.cache/whisper to some directory on the host (for instance /home/administrator/.cache/whisper), where you can (optionally) 
 prepopulate the directory with the different Whisper models. 
+
 ```
 sudo docker run -d --gpus=all -p 7860:7860 \
 --mount type=bind,source=/home/administrator/.cache/whisper,target=/root/.cache/whisper \

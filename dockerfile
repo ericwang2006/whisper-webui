@@ -10,7 +10,8 @@ ADD . /opt/whisper-webui/
 
 # Latest version of transformers-pytorch-gpu seems to lack tk. 
 # Further, pip install fails, so we must upgrade pip first.
-RUN apt-get -y install python3-tk
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y python3-tk
 RUN  python3 -m pip install --upgrade pip
 
 RUN if [ "${WHISPER_IMPLEMENTATION}" = "whisper" ]; then \
