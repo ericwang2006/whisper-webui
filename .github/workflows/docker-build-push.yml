@@ -11,7 +11,7 @@ jobs:
       matrix:
         implementation:
           - whisper
-          - fast-whisper
+          - faster-whisper
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -36,7 +36,7 @@ jobs:
           tags: |
             type=raw,value=latest,enable=${{ matrix.implementation == 'whisper' }}
             type=raw,value=whisper,enable=${{ matrix.implementation == 'whisper' }}
-            type=raw,value=fast-whisper,enable=${{ matrix.implementation == 'fast-whisper' }}
+            type=raw,value=faster-whisper,enable=${{ matrix.implementation == 'faster-whisper' }}
 
       - name: Build and push
         uses: docker/build-push-action@v4
