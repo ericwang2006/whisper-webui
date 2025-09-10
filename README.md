@@ -113,6 +113,64 @@ These directories are mounted as volumes to persist downloaded models between co
 - Web UI and CLI interfaces
 - Configurable model sizes and precision settings
 
+## Pyannote Speaker Diarization Guide
+
+⚠️ **Note:** The following steps have not been tested.
+
+---
+
+### 💰 Cost
+
+* **Free** – Pyannote Speaker Diarization is open-source under the MIT License and can be used without payment.
+
+---
+
+### 🔑 How to Get a HuggingFace Access Token
+
+#### 1. Create / Log in to a HuggingFace Account
+
+* Visit [https://huggingface.co](https://huggingface.co)
+* Sign up or log in to your account
+
+#### 2. Request Model Access
+
+* Go to [https://huggingface.co/pyannote/speaker-diarization](https://huggingface.co/pyannote/speaker-diarization)
+* Click **"Accept conditions"** to agree to the terms of use
+* Fill out the short user information form
+
+#### 3. Create an Access Token
+
+* Open account settings: [https://huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+* Click **"New token"**
+* Choose the permission type:
+
+  * **Read**: Recommended for model inference
+  * **Write**: Read/write access
+* Copy the generated token
+
+#### 4. Use the Token
+
+**Option 1: Environment Variable**
+
+```bash
+export HK_ACCESS_TOKEN="hf_xxxxxxxxxxxxxxxxxxxx"
+```
+
+**Option 2: Command Line Argument**
+
+```bash
+python cli.py --diarization True --auth_token "hf_xxxxxxxxxxxxxxxxxxxx"
+```
+
+---
+
+### ⚠️ Notes
+
+* Token format usually looks like: `hf_xxxxxxxxxxxxxxxxxxxx`
+* It’s recommended to create a separate token for each application
+* For production, use a **fine-grained token**
+* Keep your token secret — **do not commit it to version control**
+
 ---
 
 Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
