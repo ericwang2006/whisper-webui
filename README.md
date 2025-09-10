@@ -77,6 +77,33 @@ The following directories are used for caching:
 
 These directories are mounted as volumes to persist downloaded models between container runs.
 
+## Additional Notes for Command Line Usage
+
+- To run the CLI in CPU mode, remove the `--gpus=all` parameter from the command.
+- The `--language` parameter can be used to specify the language of the audio input, which helps improve transcription accuracy.
+
+
+## Key Parameter Explanations
+
+1. **`--vad_max_merge_size`** – This is the most critical parameter
+    - Setting it between `10.0-15.0` seconds limits the maximum length of a single subtitle segment.
+    - If you want shorter subtitles, set it to `8.0` seconds or less.
+2. **`--vad_merge_window`** – Controls merge logic
+    - Setting it to `1.5-2.0` seconds helps reduce over-merging of adjacent voice segments.
+    - Smaller values produce more but shorter subtitle segments.
+3. **`--vad silero-vad-skip-gaps`** – Algorithm choice
+    - This variant skips silent gaps compared to the basic `silero-vad`.
+    - It helps split subtitles naturally at speech pauses.
+4. **`--vad_padding`** – Fine-tunes segment boundaries
+    - Setting it from `0.3-0.5` seconds adds a small padding around each segment.
+    - Helps avoid cutting off the beginning or end of words.
+
+## Adjusting Parameters Based on Content Type
+
+- **Dialogue/Interview**: `--vad_max_merge_size 12.0 --vad_merge_window 2.0`
+- **Speech/Lecture**: `--vad_max_merge_size 20.0 --vad_merge_window 3.0`
+- **Fast Conversation**: `--vad_max_merge_size 8.0 --vad_merge_window 1.0`
+
 ## Features
 
 - GPU acceleration support
