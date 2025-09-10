@@ -1,4 +1,4 @@
-# docker build -t ericwang2006/whisper-webui:fast-whisper --build-arg WHISPER_IMPLEMENTATION=fast-whisper -f dockerfile-whisper .
+# docker build -t ericwang2006/whisper-webui:faster-whisper --build-arg WHISPER_IMPLEMENTATION=faster-whisper -f dockerfile-whisper .
 # Specify the Python version via --build-arg PYTHON_VERSION=3.11
 
 ARG PYTHON_VERSION=3.10
@@ -10,7 +10,7 @@ ARG WHISPER_IMPLEMENTATION=whisper
 ENV WHISPER_IMPLEMENTATION=${WHISPER_IMPLEMENTATION}
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends git ffmpeg && \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates git ffmpeg && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -19,9 +19,9 @@ RUN git clone --depth 1 https://github.com/ericwang2006/whisper-webui.git /opt/w
 RUN python3 -m pip install --upgrade pip
 
 RUN if [ "${WHISPER_IMPLEMENTATION}" = "whisper" ]; then \
-    python3 -m pip install -r /opt/whisper-webui/requirements-whisper.txt; \
+    python3 -m pip install -r /opt/whisper-webui/requirements-whisper.txt --no-cache-dir --root-user-action=ignore; \
   else \
-    python3 -m pip install -r /opt/whisper-webui/requirements-fasterWhisper.txt; \
+    python3 -m pip install -r /opt/whisper-webui/requirements-fasterWhisper.txt --no-cache-dir --root-user-action=ignore; \
   fi
 
 ARG PYTHON_VERSION
