@@ -36,7 +36,7 @@ cli.py --model medium --auto_parallel True \
 --vad_merge_window 1.0 \
 --vad_padding 0.3 \
 --language Chinese \
---fp16 False \
+--fp16 True \
 --output_dir /app/data /app/data/example.mp4
 ```
 
