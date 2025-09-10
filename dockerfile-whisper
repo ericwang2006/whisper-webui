@@ -1,19 +1,22 @@
-# docker build -t whisper-webui --build-arg WHISPER_IMPLEMENTATION=fast-whisper -f dockerfile-whisper .
+# docker build -t ericwang2006/whisper-webui:fast-whisper --build-arg WHISPER_IMPLEMENTATION=fast-whisper -f dockerfile-whisper .
+# Specify the Python version via --build-arg PYTHON_VERSION=3.11
 
-FROM python:3.10
+ARG PYTHON_VERSION=3.10
+FROM python:${PYTHON_VERSION}-slim
+
 EXPOSE 7860
 
 ARG WHISPER_IMPLEMENTATION=whisper
 ENV WHISPER_IMPLEMENTATION=${WHISPER_IMPLEMENTATION}
 
-RUN git clone --depth 1 https://github.com/ericwang2006/whisper-webui.git /opt/whisper-webui/
-
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && \
+RUN apt-get update && apt-get install -y --no-install-recommends git ffmpeg && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN  python3 -m pip install --upgrade pip
+RUN git clone --depth 1 https://github.com/ericwang2006/whisper-webui.git /opt/whisper-webui/
+
+RUN python3 -m pip install --upgrade pip
 
 RUN if [ "${WHISPER_IMPLEMENTATION}" = "whisper" ]; then \
     python3 -m pip install -r /opt/whisper-webui/requirements-whisper.txt; \
@@ -21,9 +24,13 @@ RUN if [ "${WHISPER_IMPLEMENTATION}" = "whisper" ]; then \
     python3 -m pip install -r /opt/whisper-webui/requirements-fasterWhisper.txt; \
   fi
 
+ARG PYTHON_VERSION
+ENV LD_LIBRARY_PATH=/usr/local/lib/python${PYTHON_VERSION}/site-packages/nvidia/cudnn/lib
+
 # To be able to see logs in real time
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /opt/whisper-webui/
+
 ENTRYPOINT ["python3"]
 CMD ["app.py", "--input_audio_max_duration", "-1", "--server_name", "0.0.0.0", "--auto_parallel", "True"]
