@@ -10,8 +10,81 @@ pinned: false
 license: apache-2.0
 ---
 
-# Notice
+# Docker image usage
 This is a copy for [aadnk/whisper-webui](https://gitlab.com/aadnk/whisper-webui),I made modifications based on this for personal use.
+
+### Using Standard Whisper
+
+1. Start WebUI with GPU Support
+
+```bash
+sudo docker run -d --gpus=all -p 7860:7860 ericwang2006/whisper-webui
+```
+
+2. CLI Usage
+
+```bash
+sudo docker run --rm \
+--gpus=all \
+-v ./.cache/whisper:/root/.cache/whisper \
+-v ./.cache/huggingface:/root/.cache/huggingface \
+-v ./:/app/data \
+ericwang2006/whisper-webui \
+cli.py --model medium --auto_parallel True \
+--vad silero-vad-skip-gaps \
+--vad_max_merge_size 8.0 \
+--vad_merge_window 1.0 \
+--vad_padding 0.3 \
+--language Chinese \
+--fp16 False \
+--output_dir /app/data /app/data/example.mp4
+```
+
+### Using Faster-Whisper
+
+1. Start WebUI with GPU Support
+
+```bash
+sudo docker run -d --gpus=all -p 7860:7860 ericwang2006/whisper-webui:faster-whisper
+```
+
+2. CLI Usage
+
+```bash
+sudo docker run --rm \
+--gpus=all \
+-v ./.cache/whisper:/root/.cache/whisper \
+-v ./.cache/huggingface:/root/.cache/huggingface \
+-v ./:/app/data \
+ericwang2006/whisper-webui:faster-whisper \
+cli.py --model large --auto_parallel True \
+--vad silero-vad-skip-gaps \
+--vad_max_merge_size 8.0 \
+--vad_merge_window 1.0 \
+--vad_padding 0.3 \
+--language Chinese \
+--whisper_implementation faster-whisper \
+--compute_type float16 \
+--output_dir /app/data /app/data/example.mp4
+```
+
+## Cache Directories
+
+The following directories are used for caching:
+
+- `/root/.cache/whisper` - Whisper model cache directory
+- `/root/.cache/huggingface` - Faster-Whisper model cache directory
+
+These directories are mounted as volumes to persist downloaded models between container runs.
+
+## Features
+
+- GPU acceleration support
+- Voice Activity Detection (VAD) with configurable parameters
+- Support for multiple languages
+- Both standard Whisper and Faster-Whisper implementations
+- Web UI and CLI interfaces
+- Configurable model sizes and precision settings
 
 ---
 
