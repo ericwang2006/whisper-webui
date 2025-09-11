@@ -30,7 +30,7 @@ sudo docker run --rm \
 -v ./.cache/huggingface:/root/.cache/huggingface \
 -v ./:/app/data \
 ericwang2006/whisper-webui \
-cli.py --model medium --auto_parallel True \
+python3 cli.py --model medium --auto_parallel True \
 --vad silero-vad-skip-gaps \
 --vad_max_merge_size 8.0 \
 --vad_merge_window 1.0 \
@@ -57,7 +57,7 @@ sudo docker run --rm \
 -v ./.cache/huggingface:/root/.cache/huggingface \
 -v ./:/app/data \
 ericwang2006/whisper-webui:faster-whisper \
-cli.py --model large --auto_parallel True \
+python3 cli.py --model large --auto_parallel True \
 --vad silero-vad-skip-gaps \
 --vad_max_merge_size 8.0 \
 --vad_merge_window 1.0 \
