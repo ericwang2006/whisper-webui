@@ -9,28 +9,23 @@ EXPOSE 7860
 ARG WHISPER_IMPLEMENTATION=whisper
 ENV WHISPER_IMPLEMENTATION=${WHISPER_IMPLEMENTATION}
 
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates git ffmpeg && \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates git ffmpeg && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth 1 https://github.com/ericwang2006/whisper-webui.git /opt/whisper-webui/
 
-RUN python3 -m pip install --upgrade pip
-
 RUN if [ "${WHISPER_IMPLEMENTATION}" = "whisper" ]; then \
-    python3 -m pip install -r /opt/whisper-webui/requirements-whisper.txt --no-cache-dir --root-user-action=ignore; \
+    python3 -m pip install --upgrade pip && python3 -m pip install -r /opt/whisper-webui/requirements-whisper.txt --no-cache-dir --root-user-action=ignore; \
   else \
-    python3 -m pip install -r /opt/whisper-webui/requirements-fasterWhisper.txt --no-cache-dir --root-user-action=ignore; \
+    python3 -m pip install --upgrade pip && python3 -m pip install -r /opt/whisper-webui/requirements-fasterWhisper.txt --no-cache-dir --root-user-action=ignore; \
   fi
 
 ARG PYTHON_VERSION
-ENV LD_LIBRARY_PATH=/usr/local/lib/python${PYTHON_VERSION}/site-packages/nvidia/cudnn/lib
-
-# To be able to see logs in real time
-ENV PYTHONUNBUFFERED=1
+ENV LD_LIBRARY_PATH=/usr/local/lib/python${PYTHON_VERSION}/site-packages/nvidia/cudnn/lib \
+    PYTHONUNBUFFERED=1
 
 WORKDIR /opt/whisper-webui/
 
-ENTRYPOINT ["python3"]
-CMD ["app.py", "--input_audio_max_duration", "-1", "--server_name", "0.0.0.0", "--auto_parallel", "True"]
+CMD ["python3", "app.py", "--input_audio_max_duration", "-1", "--server_name", "0.0.0.0", "--auto_parallel", "True"]
