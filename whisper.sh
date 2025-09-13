@@ -50,7 +50,7 @@ trap cleanup EXIT
 FILENAME=""
 WHISPER_TYPE="whisper"
 MODEL="medium"
-LANGUAGE="Chinese"
+WHISPER_LANGUAGE="Chinese"
 
 # 解析命令行参数
 # 当通过管道调用时，参数会通过 bash -s 传递，需要跳过第一个参数（脚本名）
@@ -69,7 +69,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --language)
-            LANGUAGE="$2"
+            WHISPER_LANGUAGE="$2"
             shift 2
             ;;
         --help)
@@ -92,7 +92,7 @@ if [ -z "$FILENAME" ]; then
     exit 1
 fi
 
-log_info "参数设置: 文件名=$FILENAME, 识别引擎=$WHISPER_TYPE, 模型=$MODEL, 语言=$LANGUAGE"
+log_info "参数设置: 文件名=$FILENAME, 识别引擎=$WHISPER_TYPE, 模型=$MODEL, 语言=$WHISPER_LANGUAGE"
 
 # 1. 检查镜像文件是否存在
 IMAGE_FILE="/content/drive/MyDrive/whisper/whisperenv.img"
@@ -251,7 +251,7 @@ if [ "$WHISPER_TYPE" = "faster-whisper" ]; then
             --vad_max_merge_size 8.0 \
             --vad_merge_window 1.0 \
             --vad_padding 0.3 \
-            --language "$LANGUAGE" \
+            --language "$WHISPER_LANGUAGE" \
             --whisper_implementation faster-whisper \
             --compute_type float16 \
             --output_dir "$MP4_DIR" \
@@ -265,7 +265,7 @@ if [ "$WHISPER_TYPE" = "faster-whisper" ]; then
             --vad_max_merge_size 8.0 \
             --vad_merge_window 1.0 \
             --vad_padding 0.3 \
-            --language "$LANGUAGE" \
+            --language "$WHISPER_LANGUAGE" \
             --whisper_implementation faster-whisper \
             --output_dir "$MP4_DIR" \
             "$INPUT_FILE"
@@ -282,7 +282,7 @@ else
             --vad_max_merge_size 8.0 \
             --vad_merge_window 1.0 \
             --vad_padding 0.3 \
-            --language "$LANGUAGE" \
+            --language "$WHISPER_LANGUAGE" \
             --fp16 True \
             --output_dir "$MP4_DIR" \
             "$INPUT_FILE"
@@ -296,7 +296,7 @@ else
             --vad_max_merge_size 8.0 \
             --vad_merge_window 1.0 \
             --vad_padding 0.3 \
-            --language "$LANGUAGE" \
+            --language "$WHISPER_LANGUAGE" \
             --fp16 False \
             --output_dir "$MP4_DIR" \
             "$INPUT_FILE"
