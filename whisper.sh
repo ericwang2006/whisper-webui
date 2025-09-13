@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Whisper 字幕识别脚本
-# 用法: ./whisper.sh <文件名> [whisper|faster-whisper] [模型名]
+# 用法:
+# 1. 直接运行: ./whisper.sh --input <文件名> [--engine whisper|faster-whisper] [--model medium] [--language Chinese]
+# 2. 管道调用: curl -fsSL https://raw.githubusercontent.com/ericwang2006/whisper-webui/refs/heads/main/whisper.sh | bash -s -- --input <文件名> [--engine whisper|faster-whisper] [--model medium] [--language Chinese]
 
 set -e  # 遇到错误立即退出
 
@@ -21,19 +23,19 @@ log_warn() {
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
 # 清理函数
 cleanup() {
     log_info "执行清理工作..."
-    
+
     # 退出虚拟环境
     if [[ "$VIRTUAL_ENV" != "" ]]; then
         log_info "退出Python虚拟环境"
         deactivate 2>/dev/null || true
     fi
-    
+
     # 卸载镜像
     if mountpoint -q /content/whisperenv 2>/dev/null; then
         log_info "卸载镜像文件"
@@ -44,19 +46,53 @@ cleanup() {
 # 设置退出时自动清理
 trap cleanup EXIT
 
-# 检查参数
-if [ $# -lt 1 ]; then
-    log_error "使用方法: $0 <文件名> [whisper|faster-whisper] [模型名]"
-    log_error "示例: $0 054.mp4 whisper medium"
+# 默认参数值
+FILENAME=""
+WHISPER_TYPE="whisper"
+MODEL="medium"
+LANGUAGE="Chinese"
+
+# 解析命令行参数
+# 当通过管道调用时，参数会通过 bash -s 传递，需要跳过第一个参数（脚本名）
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --input)
+            FILENAME="$2"
+            shift 2
+            ;;
+        --engine)
+            WHISPER_TYPE="$2"
+            shift 2
+            ;;
+        --model)
+            MODEL="$2"
+            shift 2
+            ;;
+        --language)
+            LANGUAGE="$2"
+            shift 2
+            ;;
+        --help)
+            echo "用法: $0 --input <文件名> [--engine whisper|faster-whisper] [--model medium] [--language Chinese]"
+            echo "管道调用: curl -fsSL https://raw.githubusercontent.com/ericwang2006/whisper-webui/refs/heads/main/whisper.sh | bash -s -- --input <文件名> [--engine whisper|faster-whisper] [--model medium] [--language Chinese]"
+            echo "示例: curl -fsSL https://raw.githubusercontent.com/ericwang2006/whisper-webui/refs/heads/main/whisper.sh | bash -s -- --input 054.mp4 --engine whisper --model medium --language Chinese"
+            exit 0
+            ;;
+        *)
+            log_error "未知参数: $1"
+            exit 1
+            ;;
+    esac
+done
+
+# 检查必需参数
+if [ -z "$FILENAME" ]; then
+    log_error "缺少必需参数 --input"
+    echo "使用 --help 查看帮助信息"
     exit 1
 fi
 
-# 参数设置
-FILENAME="$1"
-WHISPER_TYPE="${2:-whisper}"
-MODEL="${3:-medium}"
-
-log_info "参数设置: 文件名=$FILENAME, 识别引擎=$WHISPER_TYPE, 模型=$MODEL"
+log_info "参数设置: 文件名=$FILENAME, 识别引擎=$WHISPER_TYPE, 模型=$MODEL, 语言=$LANGUAGE"
 
 # 1. 检查镜像文件是否存在
 IMAGE_FILE="/content/drive/MyDrive/whisper/whisperenv.img"
@@ -74,24 +110,24 @@ if mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
     log_info "镜像已经挂载在: $MOUNT_POINT"
 else
     log_info "开始挂载镜像文件..."
-    
+
     # 更新包管理器并安装fuseext2
     log_info "更新系统包..."
     apt-get update -qq
-    
+
     log_info "安装fuseext2..."
     apt-get install -y fuseext2
-    
+
     # 创建挂载点
     mkdir -p "$MOUNT_POINT"
-    
+
     # 挂载镜像
     log_info "挂载镜像文件到: $MOUNT_POINT"
     if ! fuseext2 "$IMAGE_FILE" "$MOUNT_POINT" -o ro; then
         log_error "挂载镜像文件失败"
         exit 1
     fi
-    
+
     log_info "镜像挂载成功"
 fi
 
@@ -125,43 +161,43 @@ WEBUI_DIR="/content/drive/MyDrive/whisper/whisper-webui"
 if [ ! -d "$WEBUI_DIR" ]; then
     log_warn "字幕识别程序目录不存在: $WEBUI_DIR"
     log_info "开始从GitHub下载whisper-webui..."
-    
+
     # 创建临时目录
     TEMP_DIR=$(mktemp -d)
     ZIP_FILE="$TEMP_DIR/whisper-webui-main.zip"
-    
+
     log_info "临时目录: $TEMP_DIR"
     log_info "下载压缩包到: $ZIP_FILE"
-    
+
     # 下载压缩包
     if ! curl -s -L -o "$ZIP_FILE" "https://github.com/ericwang2006/whisper-webui/archive/refs/heads/main.zip"; then
         log_error "下载whisper-webui失败"
         rm -rf "$TEMP_DIR"
         exit 1
     fi
-    
+
     log_info "下载完成，开始解压..."
-    
+
     # 解压到临时目录
     if ! unzip -q "$ZIP_FILE" -d "$TEMP_DIR"; then
         log_error "解压whisper-webui失败"
         rm -rf "$TEMP_DIR"
         exit 1
     fi
-    
+
     # 创建目标目录的父目录
     mkdir -p "$(dirname "$WEBUI_DIR")"
-    
+
     # 移动解压后的文件到目标目录
     if ! mv "$TEMP_DIR/whisper-webui-main" "$WEBUI_DIR"; then
         log_error "移动文件到目标目录失败"
         rm -rf "$TEMP_DIR"
         exit 1
     fi
-    
+
     # 清理临时目录
     rm -rf "$TEMP_DIR"
-    
+
     log_info "whisper-webui下载和安装完成: $WEBUI_DIR"
 else
     log_info "字幕识别程序目录已存在: $WEBUI_DIR"
@@ -215,7 +251,7 @@ if [ "$WHISPER_TYPE" = "faster-whisper" ]; then
             --vad_max_merge_size 8.0 \
             --vad_merge_window 1.0 \
             --vad_padding 0.3 \
-            --language Chinese \
+            --language "$LANGUAGE" \
             --whisper_implementation faster-whisper \
             --compute_type float16 \
             --output_dir "$MP4_DIR" \
@@ -229,7 +265,7 @@ if [ "$WHISPER_TYPE" = "faster-whisper" ]; then
             --vad_max_merge_size 8.0 \
             --vad_merge_window 1.0 \
             --vad_padding 0.3 \
-            --language Chinese \
+            --language "$LANGUAGE" \
             --whisper_implementation faster-whisper \
             --output_dir "$MP4_DIR" \
             "$INPUT_FILE"
@@ -246,7 +282,7 @@ else
             --vad_max_merge_size 8.0 \
             --vad_merge_window 1.0 \
             --vad_padding 0.3 \
-            --language Chinese \
+            --language "$LANGUAGE" \
             --fp16 True \
             --output_dir "$MP4_DIR" \
             "$INPUT_FILE"
@@ -260,7 +296,7 @@ else
             --vad_max_merge_size 8.0 \
             --vad_merge_window 1.0 \
             --vad_padding 0.3 \
-            --language Chinese \
+            --language "$LANGUAGE" \
             --fp16 False \
             --output_dir "$MP4_DIR" \
             "$INPUT_FILE"
