@@ -37,7 +37,7 @@ cleanup() {
     # 卸载镜像
     if mountpoint -q /content/whisperenv 2>/dev/null; then
         log_info "卸载镜像文件"
-        umount /content/whisperenv || log_warn "卸载镜像失败，可能需要手动处理"
+        fusermount -uz /content/whisperenv 2>/dev/null
     fi
 }
 
